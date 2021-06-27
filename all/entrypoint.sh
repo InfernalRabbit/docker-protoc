@@ -467,4 +467,6 @@ if [ $GEN_GATEWAY = true ]; then
         protoc $PROTO_INCLUDE  \
 		    --openapiv2_out=logtostderr=true,json_names_for_fields=false:$GATEWAY_DIR ${PROTO_FILES[@]}
     fi
+    
+    find . -name '*.swagger.json' -exec mv {} $GATEWAY_DIR \;
 fi

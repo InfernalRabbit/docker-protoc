@@ -7,17 +7,24 @@ FROM golang:$go_version-alpine$alpine_version AS build
 RUN apk add --update --no-cache git
 WORKDIR /app
 
+# 3. Download and precompile all third party libraries, ignoring errors (some have broken tests or whatever)
+ADD go.mod .
+ADD go.sum .
+RUN go mod download -x
+RUN go list -m all | tail -n +2 | cut -f 1 -d " " | awk 'NF{print $0 "/..."}' | CGO_ENABLED=0 GOOS=linux xargs -n1 go build -v -installsuffix cgo -i; echo done
+
 # Copy all of the staged files (protos plus go source)
 COPY . /app/
 
-# Build the gateway
-RUN go build -o /app/grpc_gateway cmd/gateway/main.go
+# Copy all of the go refs
+RUN cp -r /app/gateway /usr/local/go/src/ && cp -r /app/gen/gateway /usr/local/go/src/
+RUN CGO_ENABLED=0 GOOS=linux go build -v -installsuffix cgo -o /app/grpc_gateway -ldflags "-s -w" cmd/gateway/main.go
 
 FROM alpine:$alpine_version
 WORKDIR /app
 COPY --from=build /app/grpc_gateway /app/
 COPY --from=build /app/config.yaml /app/
-COPY --from=build /app/{{.Import}}/{{.Swagger}} /app/
+COPY --from=build /app/{{.Gen}}/{{.Swagger}} /app/
 
 EXPOSE 80
 ENTRYPOINT ["/app/grpc_gateway"]

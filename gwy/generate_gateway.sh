@@ -130,11 +130,13 @@ GATEWAY_IMPORT_DIR=${GATEWAY_IMPORT_DIR#"$OUT_DIR/"}
 PROTO_FILE=$(basename $FILE)
 SWAGGER_FILE_NAME=`basename $PROTO_FILE .proto`.swagger.json
 
+GEN="gen"
+
 # Copy and update the templates.
 renderizer --import=${GATEWAY_IMPORT_DIR} --swagger=${SWAGGER_FILE_NAME} /templates/config.yaml.tmpl > $OUT_DIR/config.yaml
 renderizer --import=${GATEWAY_IMPORT_DIR} --swagger=${SWAGGER_FILE_NAME} /templates/go.mod.tmpl > $OUT_DIR/go.mod
 renderizer --import=${GATEWAY_IMPORT_DIR} --swagger=${SWAGGER_FILE_NAME} /templates/go.sum.tmpl > $OUT_DIR/go.sum
-renderizer --import=${GATEWAY_IMPORT_DIR} --swagger=${SWAGGER_FILE_NAME} /templates/Dockerfile.tmpl > $OUT_DIR/Dockerfile
+renderizer --import=${GATEWAY_IMPORT_DIR} --swagger=${SWAGGER_FILE_NAME} --gen=${GEN} /templates/Dockerfile.tmpl > $OUT_DIR/Dockerfile
 
 MAIN_DIR=${OUT_DIR}/cmd/gateway
 mkdir -p ${MAIN_DIR}
